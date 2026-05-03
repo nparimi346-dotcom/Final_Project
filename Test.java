@@ -29,6 +29,8 @@ public class Test {
         // board.setPieceAt(k8, 3, 4);
         Move move = new Move(0, 0, 0, 1, Move.MoveType.NORMAL, false, false, board);
         System.out.println(move.toString());
+
+        System.out.println(bK.toString());
         
     }
 }

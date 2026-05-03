@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileNotFoundException;
 
 public class BoardUI extends JFrame{
     
@@ -10,7 +11,7 @@ public class BoardUI extends JFrame{
     public static final Color VERY_LIGHT_BROWN = new Color(254,228,187);
     public static final Color DARK_BROWN = new Color(205,154,117);
 
-    Board board = new Board();
+    Board boardgrid = new Board();
     
 
     //BoardUI will eventually need a reference to game, to update board visually and stuff
@@ -20,6 +21,22 @@ public class BoardUI extends JFrame{
         windowLength = windowL;
         tileSize = tileS;
         initialize();
+    }
+
+    public JLabel getImage(Piece piece)
+    {
+        /*
+        The underscored must be removed and placed with the appropriate path to the PieceSprites
+        folder on your machine. Next push will resolve this, but currently, for GUI testing purposes,
+        please replace the file path.
+        */
+        ImageIcon image = new ImageIcon(/* YOUR FILE PATH HERE*/"/PieceSprites/new_" + piece.toString() + ".png");
+        if (image.getImage() == null) {
+            System.out.println("Image not found: " + piece.toString());
+            return null;
+        }
+        Image scaled = image.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH); // Scales the image to preferred size
+        return new JLabel(new ImageIcon(scaled));
     }
 
     public void initialize()
@@ -39,9 +56,10 @@ public class BoardUI extends JFrame{
         board.setBounds(windowLength/2, windowWidth/2, tileSize * 8, tileSize*8);
 
         // Fill our board JPanel with white and gray tiles to represent a chess board
+        
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                JPanel square = new JPanel();
+                JPanel square = new JPanel(new BorderLayout());
                 if ((i + j) % 2 == 0) {
                     square.setBackground(VERY_LIGHT_BROWN);
                     square.setPreferredSize(new Dimension(tileSize, tileSize));
@@ -49,6 +67,14 @@ public class BoardUI extends JFrame{
                     square.setBackground(DARK_BROWN);
                     square.setPreferredSize(new Dimension(tileSize, tileSize));
                 }
+
+                Piece piece = boardgrid.getPieceAt(i,j);
+                if (boardgrid.getPieceAt(i,j) != null) {
+                    JLabel label = getImage(piece);
+                    label.setHorizontalAlignment(SwingConstants.CENTER);
+                    square.add(label, BorderLayout.CENTER);
+                }
+
                 board.add(square);
             }
         }
@@ -100,6 +126,6 @@ public class BoardUI extends JFrame{
         setVisible(true);
     }
     public static void main(String[] args) {
-        BoardUI board = new BoardUI(600,600,20);
+        BoardUI board = new BoardUI(800,800,30);
     }
 }
