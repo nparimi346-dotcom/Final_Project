@@ -11,15 +11,16 @@ public class BoardUI extends JFrame{
     public static final Color VERY_LIGHT_BROWN = new Color(254,228,187);
     public static final Color DARK_BROWN = new Color(205,154,117);
 
-    Board boardgrid = new Board();
+    Board boardgrid;
     
 
     //BoardUI will eventually need a reference to game, to update board visually and stuff
-    public BoardUI(int windowW, int windowL, int tileS)
+    public BoardUI(int windowW, int windowL, int tileS, Board board)
     {
         windowWidth = windowW;
         windowLength = windowL;
         tileSize = tileS;
+        boardgrid = board;
         initialize();
     }
 
@@ -30,12 +31,12 @@ public class BoardUI extends JFrame{
         folder on your machine. Next push will resolve this, but currently, for GUI testing purposes,
         please replace the file path.
         */
-        ImageIcon image = new ImageIcon(/* YOUR FILE PATH HERE*/"/PieceSprites/new_" + piece.toString() + ".png");
+        ImageIcon image = new ImageIcon("/Users/neelparimi/Documents/GitHub/Final_Project/PieceSprites/new_" + piece.toString() + ".png");
         if (image.getImage() == null) {
             System.out.println("Image not found: " + piece.toString());
             return null;
         }
-        Image scaled = image.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH); // Scales the image to preferred size
+        Image scaled = image.getImage().getScaledInstance( (int)(tileSize * 2), (int)(tileSize * 2), Image.SCALE_SMOOTH); // Scales the image to preferred size
         return new JLabel(new ImageIcon(scaled));
     }
 
@@ -74,6 +75,7 @@ public class BoardUI extends JFrame{
                     label.setHorizontalAlignment(SwingConstants.CENTER);
                     square.add(label, BorderLayout.CENTER);
                 }
+                
 
                 board.add(square);
             }
@@ -126,6 +128,7 @@ public class BoardUI extends JFrame{
         setVisible(true);
     }
     public static void main(String[] args) {
-        BoardUI board = new BoardUI(800,800,30);
+        Board game = new Board();
+        BoardUI board = new BoardUI(800,800,30, game);
     }
 }
