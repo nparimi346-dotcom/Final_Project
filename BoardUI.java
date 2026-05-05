@@ -1,6 +1,7 @@
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.*;
-import java.io.FileNotFoundException;
 
 public class BoardUI extends JFrame{
     
@@ -10,9 +11,18 @@ public class BoardUI extends JFrame{
 
     public static final Color VERY_LIGHT_BROWN = new Color(254,228,187);
     public static final Color DARK_BROWN = new Color(205,154,117);
+    public static final Color HIGHLIGHT = new Color(130, 200, 100, 180);
 
     Board boardgrid;
+    JPanel[][] panelBoard = new JPanel[8][8];
+    JPanel board = new JPanel(new GridLayout(8,8));
     
+    private int selectedRow;
+    private int selectedCol;
+    private int moveToRow;
+    private int moveToCol;
+    private boolean pieceSelected = false;
+    private Piece pieceToMove = null;
 
     //BoardUI will eventually need a reference to game, to update board visually and stuff
     public BoardUI(int windowW, int windowL, int tileS, Board board)
@@ -51,32 +61,14 @@ public class BoardUI extends JFrame{
         // and thinner tiles on sides for addons like pieces taken or timer.)
         // We are NOT using GridLayout because that forces all tiles, including our board, the same size
 
-
-
-        JPanel board = new JPanel(new GridLayout(8,8));
         board.setBounds(windowLength/2, windowWidth/2, tileSize * 8, tileSize*8);
 
         // Fill our board JPanel with white and gray tiles to represent a chess board
         
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                JPanel square = new JPanel(new BorderLayout());
-                if ((i + j) % 2 == 0) {
-                    square.setBackground(VERY_LIGHT_BROWN);
-                    square.setPreferredSize(new Dimension(tileSize, tileSize));
-                } else {
-                    square.setBackground(DARK_BROWN);
-                    square.setPreferredSize(new Dimension(tileSize, tileSize));
-                }
-
-                Piece piece = boardgrid.getPieceAt(i,j);
-                if (boardgrid.getPieceAt(i,j) != null) {
-                    JLabel label = getImage(piece);
-                    label.setHorizontalAlignment(SwingConstants.CENTER);
-                    square.add(label, BorderLayout.CENTER);
-                }
-                
-
+                JPanel square = makeTile(i, j);
+                panelBoard[i][j] = square;
                 board.add(square);
             }
         }
@@ -126,6 +118,133 @@ public class BoardUI extends JFrame{
         add(fillerTile4, c);
         
         setVisible(true);
+    }
+
+    private JPanel makeTile(int i, int j)
+    {
+        JPanel square = new JPanel(new BorderLayout());
+        if ((i + j) % 2 == 0) {
+            square.setBackground(VERY_LIGHT_BROWN);
+            square.setPreferredSize(new Dimension(tileSize, tileSize));
+        } else {
+            square.setBackground(DARK_BROWN);
+            square.setPreferredSize(new Dimension(tileSize, tileSize));
+        }
+
+        Piece piece = boardgrid.getPieceAt(i,j);
+        if (boardgrid.getPieceAt(i,j) != null) {
+            JLabel label = getImage(piece);
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            square.add(label, BorderLayout.CENTER);
+        }
+
+        square.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleTileClick(i, j);
+            }
+        });
+
+        return square;
+    }
+
+    private void handleTileClick(int i, int j)
+    {
+        if(pieceSelected == false)
+        {
+            if (hasLabel(panelBoard[i][j])) {
+                selectedRow = i;
+                selectedCol = j;
+                pieceSelected = true;
+                highLightTile(panelBoard[selectedRow][selectedCol], HIGHLIGHT);
+                System.out.println("I have been clicked");
+            }
+        }
+        else
+        {
+            moveToRow = i;
+            moveToCol = j;
+            if (selectedRow == moveToRow && moveToCol == selectedCol) {
+                pieceSelected = false;
+                if((selectedCol + selectedRow) % 2 == 0)
+                {
+                    highLightTile(board, VERY_LIGHT_BROWN);
+                }
+                else
+                {
+                    highLightTile(board, DARK_BROWN);
+                }
+            }
+            else
+            {
+                System.out.println("I have been clicked again");
+                pieceToMove = boardgrid.getPieceAt(selectedRow, selectedCol);
+                if(pieceToMove.canMoveTo(selectedRow, selectedCol, moveToRow, moveToCol, boardgrid))
+                {
+                    boardgrid.setPieceAt(pieceToMove, moveToRow, moveToCol);
+                    boardgrid.setPieceAt(null, selectedRow, selectedCol);
+
+                    pieceSelected = false;
+                    if((selectedCol + selectedRow) % 2 == 0)
+                    {
+                        highLightTile(board, VERY_LIGHT_BROWN);
+                    }
+                    else
+                    {
+                        highLightTile(board, DARK_BROWN);
+                    }
+                }
+            }
+        }
+        redrawBoard();
+    }
+
+    private void highLightTile(JPanel panel, Color highLightColor)
+    {
+        panel.setBackground(highLightColor);
+    }
+
+    private boolean hasLabel(JPanel panel) {
+        Component[] components = panel.getComponents();
+    
+        for (Component comp : components) {
+            if (comp instanceof JLabel) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private Component getLabel(JPanel panel)
+    {
+        if(hasLabel(panel))
+        {
+            Component[] components = panel.getComponents();
+    
+            for (Component comp : components) {
+                if (comp instanceof JLabel) {
+                    return comp;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void redrawBoard()
+    {
+        board.removeAll();
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                JPanel square = makeTile(i, j);
+                panelBoard[i][j] = square;
+                board.add(square);
+            }
+        }
+
+        board.revalidate();
+        board.repaint();
     }
     public static void main(String[] args) {
         Board game = new Board();
