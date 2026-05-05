@@ -9,14 +9,17 @@ public class BoardUI extends JFrame{
     private int windowLength;
     private int tileSize;
 
+    // Tile Colors //
     public static final Color VERY_LIGHT_BROWN = new Color(254,228,187);
     public static final Color DARK_BROWN = new Color(205,154,117);
     public static final Color HIGHLIGHT = new Color(130, 200, 100, 180);
 
-    Board boardgrid;
-    JPanel[][] panelBoard = new JPanel[8][8];
-    JPanel board = new JPanel(new GridLayout(8,8));
+    private Game game;
+    private Board boardgrid;
+    private JPanel[][] panelBoard = new JPanel[8][8];
+    private JPanel board = new JPanel(new GridLayout(8,8));
     
+    // Mosuse Inputs //
     private int selectedRow;
     private int selectedCol;
     private int moveToRow;
@@ -25,12 +28,13 @@ public class BoardUI extends JFrame{
     private Piece pieceToMove = null;
 
     //BoardUI will eventually need a reference to game, to update board visually and stuff
-    public BoardUI(int windowW, int windowL, int tileS, Board board)
+    public BoardUI(int windowW, int windowL, int tileS, Game game)
     {
         windowWidth = windowW;
         windowLength = windowL;
         tileSize = tileS;
-        boardgrid = board;
+        this.game = game;
+        boardgrid = game.getBoard();
         initialize();
     }
 
@@ -152,48 +156,26 @@ public class BoardUI extends JFrame{
     {
         if(pieceSelected == false)
         {
-            if (hasLabel(panelBoard[i][j])) {
-                selectedRow = i;
-                selectedCol = j;
-                pieceSelected = true;
-                highLightTile(panelBoard[selectedRow][selectedCol], HIGHLIGHT);
-                System.out.println("I have been clicked");
+            Piece piece = boardgrid.getPieceAt(i, j);
+            if (piece == null || piece.getColor() != game.getCurrentTurn())
+            {
+                return;
             }
+
+            selectedRow = i;
+            selectedCol = j;
+            pieceSelected = true;
+            pieceToMove = piece;
+            highLightTile(panelBoard[i][j], HIGHLIGHT);
         }
         else
         {
-            moveToRow = i;
-            moveToCol = j;
-            if (selectedRow == moveToRow && moveToCol == selectedCol) {
-                pieceSelected = false;
-                if((selectedCol + selectedRow) % 2 == 0)
-                {
-                    highLightTile(board, VERY_LIGHT_BROWN);
-                }
-                else
-                {
-                    highLightTile(board, DARK_BROWN);
-                }
-            }
-            else
-            {
-                System.out.println("I have been clicked again");
-                pieceToMove = boardgrid.getPieceAt(selectedRow, selectedCol);
-                if(pieceToMove.canMoveTo(selectedRow, selectedCol, moveToRow, moveToCol, boardgrid))
-                {
-                    boardgrid.setPieceAt(pieceToMove, moveToRow, moveToCol);
-                    boardgrid.setPieceAt(null, selectedRow, selectedCol);
+            highLightTile(panelBoard[selectedRow][selectedCol], tileColor(selectedRow, selectedCol));
+            pieceSelected = false;
 
-                    pieceSelected = false;
-                    if((selectedCol + selectedRow) % 2 == 0)
-                    {
-                        highLightTile(board, VERY_LIGHT_BROWN);
-                    }
-                    else
-                    {
-                        highLightTile(board, DARK_BROWN);
-                    }
-                }
+            if (selectedRow != i || selectedCol != j)
+            {
+                game.makeMove(selectedRow, selectedCol, i, j);
             }
         }
         redrawBoard();
@@ -230,6 +212,18 @@ public class BoardUI extends JFrame{
         return null;
     }
 
+    private Color tileColor(int i, int j)
+    {
+        if((i +j) % 2 == 0)
+        {
+            return VERY_LIGHT_BROWN;
+        }
+        else
+        {
+            return DARK_BROWN;
+        }
+    }
+
     public void redrawBoard()
     {
         board.removeAll();
@@ -247,7 +241,7 @@ public class BoardUI extends JFrame{
         board.repaint();
     }
     public static void main(String[] args) {
-        Board game = new Board();
+        Game game = new Game();
         BoardUI board = new BoardUI(800,800,30, game);
     }
 }
