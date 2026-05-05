@@ -140,7 +140,7 @@ public class BoardUI extends JFrame{
 
         square.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mousePressed(MouseEvent e) {
                 handleTileClick(i, j);
             }
         });
